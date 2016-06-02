@@ -1,6 +1,7 @@
 __author__ = 'nacho'
 
 import wx
+import wx.lib.scrolledpanel as scrolled
 import numpy.random
 import logging
 from constants import *
@@ -60,8 +61,8 @@ class MainFrame(wx.Frame):
         self.IDTIMER=100
         self.timer=wx.Timer(self,self.IDTIMER)
         self.Bind(wx.EVT_TIMER,self.onTimer,id=self.IDTIMER)
-        self.timer.Start(100)
 
+        #self.timer.Start(100)
 
         self.__set_properties()
         self.__do_layout()
@@ -170,9 +171,21 @@ class MainFrame(wx.Frame):
 
 # end of class MyFrame1
 
-class DrawMap(wx.Panel):
+class MyScrolledPanel(scrolled.ScrolledPanel):
+    def __init__(self, parent,size):
+        scrolled.ScrolledPanel.__init__(self, parent, -1,size=size)
+
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        self.SetScrollbars(20,20,200,200)
+        self.SetSizer(vbox)
+        self.SetupScrolling()
+        self.SetAutoLayout(1)
+        self.FitInside()
+
+class DrawMap(MyScrolledPanel):
     def __init__(self,parent,world,coords):
-        wx.Panel.__init__(self,parent,size=(MAPWIDTH,MAPHEIGHT))
+        #wx.Panel.__init__(self,parent,size=(MAPWIDTH,MAPHEIGHT))
+        MyScrolledPanel.__init__(self,parent,size=(MAPWIDTH+20,MAPHEIGHT+20))
         self.Bind(wx.EVT_PAINT,self.OnDraw)
         self.W=world
         self.coords=coords
