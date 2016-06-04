@@ -32,7 +32,7 @@ logger.setLevel(logging.INFO)
 
 
 # ToDo: Don't allow resizing
-# ToDo: Scroll map
+# ToDo: Finish world when everyone is dead
 class MainFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         # Controls main loop
@@ -45,7 +45,6 @@ class MainFrame(wx.Frame):
 
         # begin wxGlade: MyFrame1.__init__
         wx.Frame.__init__(self, *args, **kwds)
-        self.map = DrawMap(self, self.W,(0,0))
 
         self.playpic = wx.Image("./images/play.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         self.pausepic = wx.Image("./images/pause.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
@@ -62,7 +61,7 @@ class MainFrame(wx.Frame):
         self.timer=wx.Timer(self,self.IDTIMER)
         self.Bind(wx.EVT_TIMER,self.onTimer,id=self.IDTIMER)
 
-        #self.timer.Start(100)
+        self.timer.Start(100)
 
         self.__set_properties()
         self.__do_layout()
@@ -94,12 +93,38 @@ class MainFrame(wx.Frame):
         # begin wxGlade: MyFrame1.__do_layout
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         #sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+
         sizer_4=wx.FlexGridSizer(1,2,0,0)
+
+        sizer_map=wx.FlexGridSizer(2,2,0,0)
+        panel=wx.Panel(self,size=(MAPWIDTH,MAPHEIGHT))
+        self.map = DrawMap(panel, self.W,(0,0))
+
+        vbar=wx.ScrollBar(self,style=wx.SB_VERTICAL,size=(16,MAPHEIGHT))
+        vbar.SetScrollbar(0,TILESHEIGHT,BOARDSIZE,TILESHEIGHT)
+        vbar.Bind(wx.EVT_SCROLL,self.onScroll)
+
+        hbar=wx.ScrollBar(self,style=wx.SB_HORIZONTAL,size=(MAPWIDTH,16))
+        hbar.SetScrollbar(0,TILESWIDTH,BOARDSIZE,TILESWIDTH)
+        hbar.Bind(wx.EVT_SCROLL,self.onScroll)
+        sizer_map.Add(self.map,0,0,0)
+        sizer_map.Add(vbar,0,0,0)
+        sizer_map.Add(hbar,0,0,0)
+
+
+
+        # There are probably better ways to set the size than hardputting the width of the scrollbars (16)
+        #spanel=scrolled.ScrolledPanel(self,-1,size=(MAPWIDTH+16,MAPHEIGHT+16))
+        #spanel.SetScrollbars(TILESIZE,TILESIZE,BOARDSIZE-TILESWIDTH,BOARDSIZE-TILESHEIGHT)
+        #spanel.Bind(wx.EVT_SCROLLWIN, self.onScroll)
+
+
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
         grid_sizer_1 = wx.GridSizer(2, 2, 0, 0)
         sizer_6 = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer_4.Add(self.map, 1, 0, 0)
+        sizer_4.Add(sizer_map, 1, 0, 0)
+
         sizer_6.Add(self.play_button, 0, 0, 0)
         sizer_6.Add(self.step_button, 0, 0, 0)
         sizer_6.Add(self.stop_button, 0, 0, 0)
@@ -115,6 +140,19 @@ class MainFrame(wx.Frame):
         sizer_3.Fit(self)
         self.Layout()
         # end wxGlade
+
+    def onScroll(self,event):
+        desp=event.GetPosition()
+        orient=event.GetOrientation()
+        (f,c)=self.map.coords
+        if orient==wx.HORIZONTAL:
+            c=desp
+        if orient==wx.VERTICAL:
+            f=desp
+        self.map.coords=(f,c)
+        print str(f)+','+str(c)
+        self.map.Refresh()
+
 
     def onTimer(self,event):
         if self.GO and not self.TERMINATE:
@@ -171,24 +209,30 @@ class MainFrame(wx.Frame):
 
 # end of class MyFrame1
 
-class MyScrolledPanel(scrolled.ScrolledPanel):
-    def __init__(self, parent,size):
-        scrolled.ScrolledPanel.__init__(self, parent, -1,size=size)
+# class MyScrolledPanel(scrolled.ScrolledPanel):
+#     def __init__(self, parent,size):
+#         scrolled.ScrolledPanel.__init__(self, parent, -1,size=size)
+#
+#         vbox=wx.BoxSizer(wx.VERTICAL)
+#         self.SetScrollbars(20,20,200,200)
+#         self.SetSizer(vbox)
+#         self.SetupScrolling()
+#         self.SetAutoLayout(1)
+#         self.FitInside()
 
-        vbox=wx.BoxSizer(wx.VERTICAL)
-        self.SetScrollbars(20,20,200,200)
-        self.SetSizer(vbox)
-        self.SetupScrolling()
-        self.SetAutoLayout(1)
-        self.FitInside()
 
-class DrawMap(MyScrolledPanel):
+class DrawMap(wx.Panel):
+
     def __init__(self,parent,world,coords):
-        #wx.Panel.__init__(self,parent,size=(MAPWIDTH,MAPHEIGHT))
-        MyScrolledPanel.__init__(self,parent,size=(MAPWIDTH+20,MAPHEIGHT+20))
+        wx.Panel.__init__(self,parent,size=(MAPWIDTH,MAPHEIGHT))
+        #wx.Panel.__init__(self,parent,size=(BOARDSIZE*TILESIZE,BOARDSIZE*TILESIZE))
+        #scrolled.ScrolledPanel.__init__(self,parent,-1,size=(MAPWIDTH+20,MAPHEIGHT+20))
+        #MyScrolledPanel.__init__(self,parent,size=(MAPWIDTH+20,MAPHEIGHT+20))
+
         self.Bind(wx.EVT_PAINT,self.OnDraw)
         self.W=world
         self.coords=coords
+
 
 
     def OnDraw(self,event=None):
@@ -197,8 +241,8 @@ class DrawMap(MyScrolledPanel):
         dc.SetPen(wx.Pen(wx.BLACK,1.5))
 
 
-        f1=self.coords[0]
-        c1=self.coords[1]
+        c1=self.coords[0]
+        f1=self.coords[1]
         f2=f1+TILESHEIGHT
         c2=c1+TILESWIDTH
 
@@ -229,6 +273,56 @@ class DrawMap(MyScrolledPanel):
                     color=BROWN
                 dc.SetBrush(wx.Brush(color, wx.SOLID))
                 dc.DrawRectangle((y-f1)*TILESIZE,(x-c1)*TILESIZE,TILESIZE,TILESIZE)
+
+
+
+# class DrawMap(MyScrolledPanel):
+#     def __init__(self,parent,world,coords):
+#         #wx.Panel.__init__(self,parent,size=(MAPWIDTH,MAPHEIGHT))
+#         MyScrolledPanel.__init__(self,parent,size=(MAPWIDTH+20,MAPHEIGHT+20))
+#         self.Bind(wx.EVT_PAINT,self.OnDraw)
+#         self.W=world
+#         self.coords=coords
+#
+#
+#     def OnDraw(self,event=None):
+#         dc = wx.PaintDC(self)
+#         dc.Clear()
+#         dc.SetPen(wx.Pen(wx.BLACK,1.5))
+#
+#
+#         f1=self.coords[0]
+#         c1=self.coords[1]
+#         f2=f1+TILESHEIGHT
+#         c2=c1+TILESWIDTH
+#
+#         if f2>=BOARDSIZE:
+#             f2=BOARDSIZE
+#             f1=f2-TILESHEIGHT
+#         if c2>=BOARDSIZE:
+#             c2=BOARDSIZE
+#             c1=c2-TILESHEIGHT
+#
+#         for y in range(f1,f2):
+#             for x in range(c1,c2):
+#                 a=self.W.board.cell(pos.pos(x,y))
+#                 if a.is_hab():
+#                     b=a.hab[0]
+#                     d=b.diet()
+#                     if d==HERB:
+#                         color=HERBCOLOR
+#                     elif d==CARN:
+#                         color=CARNCOLOR
+#                     else:
+#                         color=OMNICOLOR
+#                 elif a.has_food(CARN):
+#                     color=RED
+#                 elif a.has_food(HERB):
+#                     color=GREEN
+#                 else:
+#                     color=BROWN
+#                 dc.SetBrush(wx.Brush(color, wx.SOLID))
+#                 dc.DrawRectangle((y-f1)*TILESIZE,(x-c1)*TILESIZE,TILESIZE,TILESIZE)
 
 
 
