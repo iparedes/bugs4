@@ -5,7 +5,7 @@ import copy
 from constants import *
 
 class pos():
-    def __init__(self,x=None,y=None,maxx=BOARDSIZE,maxy=BOARDSIZE):
+    def __init__(self,x=None,y=None,maxx=BOARDWIDTH-1,maxy=BOARDHEIGHT-1):
         self.maxx=maxx
         self.maxy=maxy
         if x==None or y==None:
@@ -15,9 +15,20 @@ class pos():
         else:
             self.x=x
             self.y=y
-        self.row=y
-        self.column=x
 
+            
+    @property
+    def row(self):
+        return self.y
+
+    @property
+    def column(self):
+        return self.x
+
+
+
+    def tuple(self):
+        return(self.x,self.y)
 
     def set(self,x,y):
         self.x=x
@@ -63,6 +74,10 @@ class pos():
             self.y=self.maxy-1
         elif self.y==self.maxy:
             self.y=0
+
+    def add(self,x,y):
+        self.x+=x
+        self.y+=y
 
     def rand_pos(self):
         return numpy.random.randint(0,self.maxx),numpy.random.randint(0,self.maxy)
