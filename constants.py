@@ -28,6 +28,7 @@ ENERGY=100
 # Init Energy
 INITENERGY=50
 
+
 # Percentage of energy to share
 SHARENERGY=50
 # Number of descendants
@@ -76,10 +77,17 @@ RETOFFS=2 # list of offspringed bugs
 
 # side of the world
 #BOARDSIZE=50
-BOARDSIZE=200
+#BOARDSIZE=200
+#BOARDWIDTH=4
+#BOARDHEIGHT=2
+BOARDWIDTH=200
+BOARDHEIGHT=200
+
+
 
 # Food per cell
 FOODPACK=10
+
 
 # Index in the sowratevalues of initial sowrate
 #SOWRATE=4
@@ -91,10 +99,13 @@ STDDEV=10 # percentage
 
 # *************** GUI CONSTANTS ***************
 
-# Dimensions of the map (<=Boardsize)
+# Dimensions of the window looking at the map (<= as boardsize)
+#TILESWIDTH=BOARDWIDTH
+#TILESHEIGHT=BOARDHEIGHT
 TILESWIDTH=50
 TILESHEIGHT=50
 TILESIZE=10
+
 MAPWIDTH=TILESWIDTH*TILESIZE
 MAPHEIGHT=TILESHEIGHT*TILESIZE
 MARGIN=4

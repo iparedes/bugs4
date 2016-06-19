@@ -13,8 +13,9 @@ class board:
         """
         self.height=height
         self.width=width
-        self.b=[[cell.cell() for x in range(width)] for x in range(height)]
+        self.b=[[cell.cell() for x in range(width)] for y in range(height)]
+        # b[row][col]
 
 
     def cell(self,pos):
-        return self.b[pos.x][pos.y]
+        return self.b[pos.row][pos.column]

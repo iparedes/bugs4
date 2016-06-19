@@ -24,7 +24,7 @@ class world:
         self.cycles=0
         self.bugcount=0
         self.maxpop=0
-        self.board=board.board(BOARDSIZE,BOARDSIZE)
+        self.board=board.board(BOARDWIDTH,BOARDHEIGHT)
         self.deaths=[] # Ident of bugs dead during the cycle
         self.newborns=[] # Newborns during the cycle
         self.graveyard=[] # Dead bugs
@@ -49,6 +49,7 @@ class world:
         if not b.board:
             b.board.append(self.board)
 
+        # ToDo: If posi out of bounds generate random
         if posi==None:
             # Generates a random pos
             p=pos.pos()
@@ -270,22 +271,22 @@ class world:
             self.maxpop=pop
         if pop==0:
             logger.info('The end of the world')
-            return False
+            return True
         logger.info('New cycle '+str(self.cycles)+'. '+str(len(self.bugs))+' bugs.')
         for k,h in self.bugs.iteritems():
             self.step(h)
 
         self.sow()
-        return True
+        return False
 
     def sow(self):
         logger.info('Sowing...')
-        m=BOARDSIZE*BOARDSIZE*self.sowrate/1000
+        m=BOARDWIDTH*BOARDHEIGHT*self.sowrate/1000
         logger.debug('Start sowing '+str(m)+' cells')
         for i in range(0,int(m)):
             #x=numpy.random.randint(0,BOARDSIZE/5)*5
-            x=numpy.random.randint(0,BOARDSIZE)
-            y=numpy.random.randint(0,BOARDSIZE)
+            x=numpy.random.randint(0,BOARDWIDTH)
+            y=numpy.random.randint(0,BOARDHEIGHT)
 
             self.board.cell(pos.pos(x,y)).grow_food()
         logger.debug('End sowing')
@@ -321,6 +322,8 @@ class world:
         :return: an object with the world
         """
         a=pickle.load(file)
+        del bug.bug.board[0]
+        bug.bug.board.append(a.board)
         return a
 
 

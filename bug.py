@@ -8,7 +8,7 @@ from constants import *
 
 logger=logging.getLogger('bugs')
 
-
+# ToDo: A function to decode the operations from memory
 class bug():
 
     """Muhahahahaha, this is tricky:

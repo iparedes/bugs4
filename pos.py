@@ -16,7 +16,7 @@ class pos():
             self.x=x
             self.y=y
 
-            
+
     @property
     def row(self):
         return self.y
