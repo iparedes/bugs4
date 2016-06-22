@@ -4,8 +4,13 @@ import numpy
 import copy
 from constants import *
 
+# Position is:
+#   (x,y)
+#   (col,row)
+
+
 class pos():
-    def __init__(self,x=None,y=None,maxx=BOARDWIDTH-1,maxy=BOARDHEIGHT-1):
+    def __init__(self,x=None,y=None,maxx=BOARDWIDTH,maxy=BOARDHEIGHT):
         self.maxx=maxx
         self.maxy=maxy
         if x==None or y==None:
@@ -53,13 +58,13 @@ class pos():
         # watch out this...
         dir=dir%9
         shift={
-            1: (-1,0),
-            2: (-1,1),
-            3: (0,1),
+            1: (0,-1),
+            2: (1,-1),
+            3: (1,0),
             4: (1,1),
-            5: (1,0),
-            6: (1,-1),
-            7: (0,-1),
+            5: (0,1),
+            6: (-1,1),
+            7: (-1,0),
             8: (-1,-1),
             0: (numpy.random.randint(-1,2),numpy.random.randint(-1,2)),
         }[dir]

@@ -4,11 +4,11 @@ import copy
 import logging
 import numpy
 import pickle
+import shiftlist
 from constants import *
 
 logger=logging.getLogger('bugs')
 
-# ToDo: A function to decode the operations from memory
 class bug():
 
     """Muhahahahaha, this is tricky:
@@ -44,6 +44,9 @@ class bug():
         self._registers[SHRE]=SHARENERGY
 
         self.last_executed=""
+        # history of the last operations executed.
+        # ToDo: Last position is the next operation
+        self.listops=shiftlist.shiftlist(4)
 
 
 
@@ -306,13 +309,12 @@ class bug():
         return {RETOK:self.id}
 
     def _opcode_SRFD(self):
-        #self._registers[COMM]=OPS.index('SRFD')
         # Searches for food. Pushes the direction into the stack
-        # ToDo: bug sets initial position
-        a=self.pos.dup_pos()
+        # ToDo: bug sets initial position or do it random
         diet=self.diet()
         found=False
         for i in range(1,9):
+            a=self.pos.dup_pos()
             a.move_pos(i)
             c=self.board[0].cell(a)
             if c.has_food(diet):
@@ -325,13 +327,11 @@ class bug():
         return {RETOK:self.id}
 
     def _opcode_SRBG(self):
-        #self._registers[COMM]=OPS.index('SRBG')
-                # Searches for food. Pushes the direction into the stack
-        # ToDo: bug sets initial position
-        a=self.pos.dup_pos()
-        diet=self.diet()
+        # Searches for another bug. Pushes the direction into the stack
+        # ToDo: bug sets initial position or random
         found=False
         for i in range(1,9):
+            a=self.pos.dup_pos()
             a.move_pos(i)
             c=self.board[0].cell(a)
             if c.is_hab():
@@ -539,18 +539,41 @@ class bug():
         l=[]
         i=0
         while i<MAX_MEM:
-            v=self._memory[CODE][i]
-            try:
-                s=OPS[v]
-            except IndexError:
-                s='NOP'
-            if (s in ('PUSH','JMF','JMB','ST','LD','LDM','STM','LDP','STP','JZ','JNZ')) and (i<(MAX_MEM-1)):
-                i+=1
-                v=self._memory[CODE][i]
-                s=s+' '+str(v)
+            (s,i)=self.decode_op(i)
             l.append(s)
-            i+=1
+            # v=self._memory[CODE][i]
+            # try:
+            #     s=OPS[v]
+            # except IndexError:
+            #     s='NOP'
+            # if (s in ('PUSH','JMF','JMB','ST','LD','LDM','STM','LDP','STP','JZ','JNZ')) and (i<(MAX_MEM-1)):
+            #     i+=1
+            #     v=self._memory[CODE][i]
+            #     s=s+' '+str(v)
+            # l.append(s)
+            # i+=1
         return l
+
+    def decode_op(self,pos):
+        """
+        Decodes the op in the memory position of the code segment to a readable format
+        :param pos: memory position in the code segment
+        :return: a tuple ('decoded_op',modified PC pointing to the next instruction)
+        """
+        i=pos
+        v=self._memory[CODE][pos]
+        try:
+            s=OPS[v]
+        except IndexError:
+            s='NOP'
+        if (s in ('PUSH','JMF','JMB','ST','LD','LDM','STM','LDP','STP','JZ','JNZ')) and (i<(MAX_MEM-1)):
+            i+=1
+            v=self._memory[CODE][i]
+            s=s+' '+str(v)
+        i+=1
+        return (s,i)
+
+
 
 
     def step(self):
@@ -621,6 +644,9 @@ class bug():
         #self.last_executed=str(op)
         #logger.debug(self.id+'('+str(self._registers[ENER])+') '+str(op))
         logger.debug(self.id+'('+str(self._registers[ENER])+') '+self.last_executed)
+        self.listops.add(self.last_executed)
+        #(nextop,hop)=self.decode_op(self.PC())
+        #self.listops.add(nextop)
         self._registers[ENER]-=1
         return ret
 

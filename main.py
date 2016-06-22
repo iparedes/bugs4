@@ -72,7 +72,9 @@ class MainFrame(wx.Frame):
         self.label_bugenergy= wx.StaticText(self, wx.ID_ANY, "ener")
 
 
-        self.text_op=wx.TextCtrl(self, wx.ID_ANY,"xxxxx")
+        self.text_ops=[]
+        for i in range(0,4):
+            self.text_ops.append(wx.TextCtrl(self, wx.ID_ANY,"xxxxx"))
 
         self.IDTIMER=100
         self.timer=wx.Timer(self,self.IDTIMER)
@@ -118,8 +120,8 @@ class MainFrame(wx.Frame):
         self.savebug_button.SetSize(self.savebug_button.GetBestSize())
         self.savebug_button.Bind(wx.EVT_BUTTON, self.onSavebug)
 
-
-        self.text_op.Enable(False)
+        for i in range(0,4):
+            self.text_ops[i].Enable(False)
         #pButton.Bind(wx.EVT_BUTTON, self.OnCreate)
         # end wxGlade
 
@@ -187,7 +189,8 @@ class MainFrame(wx.Frame):
         #bug_panel.SetSizer(grid_sizer_2)
 
         sizer_ops=wx.BoxSizer(wx.VERTICAL)
-        sizer_ops.Add(self.text_op)
+        for i in range(0,4):
+            sizer_ops.Add(self.text_ops[i])
 
         # Adds:
         # Buttons
@@ -347,7 +350,11 @@ class MainFrame(wx.Frame):
             self.label_bugid.SetLabel(b.id)
             self.label_bugage.SetLabel(str(b.age))
             self.label_bugenergy.SetLabel(str(b.energy()))
-            self.text_op.SetValue(b.last_executed)
+
+            m=len(b.listops.data)
+            for i in range(0,m):
+                self.text_ops[i].SetValue(b.listops.data[i])
+                #self.text_op.SetValue(b.last_executed)
 
     def onStep(self,event):
         self.STEP=True
@@ -383,6 +390,16 @@ class MainFrame(wx.Frame):
             print "Maxpop: "+str(self.W.maxpop)
             l=oldest.decompile()
             print l
+
+            fname="savebugs/oldest-"+oldest.id+".bug"
+            f=codecs.open(fname,'wb')
+            #data_stringB=pickle.dumps(bug)
+            oldest.save(f)
+            #f.write(data_stringB)
+            f.close()
+            text="Bug "+oldest.id+" has been saved as the oldest bug in the run."
+            self.info_msg(text)
+
 
     def info_msg(parent, message, caption = 'Message'):
         dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_INFORMATION)
